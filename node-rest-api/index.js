@@ -7,9 +7,8 @@ const morgan= require('morgan');
 const multer = require('multer');
 const path = require('path');
 const passport = require('passport');
-const session = require('express-session');
-const LocalStrategy = require('passport-local').Strategy;
-const bodyparser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const passportConfig = require('./passportConfig');
 
 // ROUTER FILES
 const userRoute = require('./routes/users');
@@ -20,7 +19,6 @@ const postsRoute = require('./routes/posts');
 const app = express();
 const PORT = 8800;
 dotenv.config();
-require('./passportConfig')(passport);
 
 //CONNECTING TO DATABASE
 mongoose.connect(process.env.MONGO_URL)
@@ -32,17 +30,12 @@ mongoose.connect(process.env.MONGO_URL)
 app.use("/images", express.static(path.join(__dirname, "public/images")));
 
 //MIDDLEWARES
+app.use(cookieParser());
 app.use(express.json());
-app.use(bodyparser.json());
+app.use(express.urlencoded({extended :true}))
 app.use(helmet());
 app.use(morgan("common"));
-app.use(session({
-    secret : "This is a secret",
-    resave: false,
-    saveUninitialized: false
-}));
 app.use(passport.initialize());
-app.use(passport.session());
 
 const storage = multer.diskStorage({
     destination: (req,file,cb) =>{
@@ -65,9 +58,9 @@ app.post("/api/upload", upload.single("file"), (req,res)=>{
 })
 
 // Routers
-app.use('/api/users', userRoute);
-app.use('/api/auth', authRoute);
-app.use('/api/posts', postsRoute);
+app.use('/api/users', passport.authenticate('jwt', {session:false}), userRoute);
+app.use('/api/auth',authRoute);
+app.use('/api/posts', passport.authenticate('jwt', {session:false}), postsRoute);
 
 app.get("/", (req,res)=>{
     res.send("Welcome to homepage");
@@ -77,10 +70,10 @@ app.get("/users", (req,res)=>{
     res.send("Welcome to Users");
 });
 
-// app.post("/logout", (req,res)=>{
-//     req.logout();
-//     res.redirect('/login');
-// })
+app.get('/api/authenticated',passport.authenticate('jwt', {session:false}),(req,res)=>{
+    const user = req.user;
+    res.status(200).json({isAuthenticated: true, user});
+})
 
 app.listen(PORT, ()=>{
     console.log("Server listening on port "+ PORT);
