@@ -21,7 +21,7 @@ const PORT = 8800;
 dotenv.config();
 
 //CONNECTING TO DATABASE
-mongoose.connect("mongodb+srv://deepanshu:deepanshu@cluster0.5ckqr.mongodb.net/social")
+mongoose.connect(process.env.MONGO_URL)
     .then(()=>{
         console.log("Connected to Database!");
     }).catch((err)=>{
@@ -75,6 +75,12 @@ app.get('/api/authenticated',passport.authenticate('jwt', {session:false}),(req,
     res.status(200).json({isAuthenticated: true, user});
 })
 
-app.listen(PORT, ()=>{
+app.use(express.static(path.join(__dirname, "/react-social/build")));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '/react-social/build', 'index.html'));
+});
+
+app.listen(process.env.PORT || PORT, ()=>{
     console.log("Server listening on port "+ PORT);
 })

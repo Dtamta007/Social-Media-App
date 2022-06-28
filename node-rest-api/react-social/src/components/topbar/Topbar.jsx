@@ -3,7 +3,7 @@ import "./topbar.css";
 import {Search, Chat, Notifications, Person, ExitToApp} from "@material-ui/icons";
 import {Link} from "react-router-dom";
 import {AuthContext} from "../../context/AuthContext";
-import axios from 'axios';
+import {axiosInstance} from '../../config';
 
 export default function Topbar() {
 
@@ -11,7 +11,7 @@ export default function Topbar() {
     const PF = process.env.REACT_APP_PUBLIC_FOLDER;
 
     const handleClick = async() =>{
-      await axios.get('/auth/logout');
+      await axiosInstance.get('/auth/logout');
       window.location.reload();
     }
 

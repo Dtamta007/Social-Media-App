@@ -1,6 +1,6 @@
 import { createContext, useEffect, useReducer } from 'react';
 import AuthReducer from './AuthReducer';
-import axios from 'axios';
+import {axiosInstance} from '../config';
 
 let INITIAL_STATE = {
     user : JSON.parse(localStorage.getItem("auth")) || null,
@@ -21,7 +21,7 @@ export const AuthContextProvider = ({children}) =>{
 
     useEffect(()=>{
         const getAuth = () =>{
-                axios.get('/authenticated').then(res =>{
+                axiosInstance.get('/authenticated').then(res =>{
                     if(res.status !== 401){
                         const {user} = res.data;
                         const userData = JSON.stringify(user);
